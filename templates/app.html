@@ -1,1 +1,594 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>POS System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link rel="stylesheet" href="/static/css/main.css"/>
+<!-- JsBarcode for CODE128 barcodes -->
+<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"></script>
+<!-- jsQR for camera scanning -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body data-page="{{ page }}">
 
+<nav class="nav">
+  <a href="/" class="nav-logo">POS<b>System</b></a>
+  <div class="nav-links">
+    <a href="/" class="nav-link {% if page == 'dashboard' %}active{% endif %}">🏠 Dashboard</a>
+    <a href="/products"  class="nav-link {% if page == 'products' %}active{% endif %}">📦 Products</a>
+    <a href="/warehouse" class="nav-link {% if page == 'warehouse' %}active{% endif %}">🏭 Warehouse</a>
+    <a href="/sales"     class="nav-link {% if page == 'sales' %}active{% endif %}">🧾 Sales</a>
+    <a href="/analytics" class="nav-link {% if page == 'analytics' %}active{% endif %}">📊 Analytics</a>
+    <a href="/settings"  class="nav-link {% if page == 'settings' %}active{% endif %}">⚙️ Settings</a>
+  </div>
+  <span class="nav-user-name">{{ user.full_name }}</span>
+  <a href="/logout" class="btn btn-secondary btn-sm" style="margin-left:8px;">Logout</a>
+</nav>
+<!-- ── MOBILE NAV ── -->
+<nav class="mob-nav">
+  <div class="mob-nav-inner">
+    <a href="/" class="mob-btn {% if page == 'dashboard' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>Dash
+    </a>
+    <a href="/products" class="mob-btn {% if page == 'products' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>Items
+    </a>
+    <a href="/warehouse" class="mob-btn {% if page == 'warehouse' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Store
+    </a>
+    <a href="/sales" class="mob-btn {% if page == 'sales' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Sales
+    </a>
+    <a href="/analytics" class="mob-btn {% if page == 'analytics' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Stats
+    </a>
+    <a href="/settings" class="mob-btn {% if page == 'settings' %}active{% endif %}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>Config
+    </a>
+  </div>
+</nav>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     LOGIN PAGE
+══════════════════════════════════════════ -->
+{% if page == 'login' %}
+<main style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:var(--bg);">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <span class="icon">🍽️</span>
+      <h1>POS<span>System</span></h1>
+      <p>Sign in to manage your store</p>
+    </div>
+    <div class="login-card">
+      <h2 style="font-size:1.05rem;font-weight:600;margin-bottom:18px;">Welcome back 👋</h2>
+      
+      <div class="error-box">⚠️ </div>
+      {% endif %}
+      <form method="POST" action="?page=login">
+        <div class="form-group">
+          <label class="form-label">Username</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <input type="text" name="username" class="form-input" placeholder="Enter username" value="" autocomplete="username" autofocus required/>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Password</label>
+          <div class="input-wrap">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+            <input type="password" name="password" id="pw-input" class="form-input" placeholder="Enter password" autocomplete="current-password" required/>
+            <button type="button" class="show-pass-btn" onclick="togglePW()">👁️</button>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full btn-lg" style="margin-top:6px;">Sign In →</button>
+      </form>
+      <div class="login-footer">Default: <strong>admin</strong> / <strong>admin123</strong><br>(Change after first login)</div>
+    </div>
+  </div>
+</main>
+<script>function togglePW(){const i=document.getElementById('pw-input');i.type=i.type==='password'?'text':'password';}</script>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     DASHBOARD PAGE
+══════════════════════════════════════════ -->
+{% if page == 'dashboard' %}
+<main class="page">
+<div class="container">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div>
+      <h1 class="page-title">Good <span id="greet">Day</span> 👋</h1>
+      <p class="page-sub" id="shop-name">Loading…</p>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="openModal('cart-modal')">
+      🛒 Cart <span id="cart-badge" style="background:#fff;color:var(--accent);border-radius:99px;padding:1px 6px;font-size:.68rem;margin-left:2px;">0</span>
+    </button>
+  </div>
+  <!-- Stats -->
+  <div class="grid-4" style="margin-bottom:24px;">
+    <div class="stat-card orange"><div class="stat-label">Today's Sales</div><div class="stat-value" id="s-today-rev">—</div><div class="stat-sub" id="s-today-cnt">—</div></div>
+    <div class="stat-card red"><div class="stat-label">This Week</div><div class="stat-value" id="s-week">—</div><div class="stat-sub">7-day revenue</div></div>
+    <div class="stat-card green"><div class="stat-label">Products</div><div class="stat-value" id="s-prods">—</div><div class="stat-sub" id="s-lowstock">—</div></div>
+    <div class="stat-card blue"><div class="stat-label">All-Time Revenue</div><div class="stat-value" id="s-total">—</div><div class="stat-sub" id="s-total-tx">—</div></div>
+  </div>
+  <!-- Products + Sidebar -->
+  <div style="display:grid;grid-template-columns:1fr 280px;gap:18px;align-items:start;" class="dash-layout">
+    <div>
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <div class="search-wrap" style="flex:1;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" class="form-input search-input" id="search-inp" placeholder="Search products…" oninput="filterProds()"/>
+        </div>
+      </div>
+      <div class="cat-scroll" id="cat-pills" style="margin-bottom:14px;"></div>
+      <div class="grid-4 fade-in" id="prods-grid"><div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text3);">Loading…</div></div>
+    </div>
+    <div style="position:sticky;top:calc(var(--nav) + 16px);">
+      <div class="card">
+        <div class="card-title">🏆 Top Sellers</div>
+        <div id="top-sellers"><div style="text-align:center;padding:16px;color:var(--text3);font-size:.83rem;">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- CART MODAL -->
+<div class="modal-overlay" id="cart-modal">
+  <div class="modal" style="max-width:500px;">
+    <div class="modal-header"><span class="modal-title">🛒 Cart</span><button class="modal-close" onclick="closeModal('cart-modal')">✕</button></div>
+    <div id="cart-items"></div>
+    <div id="cart-summary" style="margin-top:14px;display:none;">
+      <div class="pay-row"><span>Subtotal</span><span id="cart-sub">—</span></div>
+      <div class="pay-row total"><span>Total</span><span id="cart-total">—</span></div>
+      <div style="margin:14px 0;">
+        <label class="form-label">Cash Tendered</label>
+        <input type="number" class="form-input" id="cash-input" placeholder="Enter amount…" oninput="calcChange()" min="0" step="1"/>
+        <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:7px;" id="presets"></div>
+      </div>
+      <div id="change-display"></div>
+      <button class="btn btn-success btn-full btn-lg" style="margin-top:10px;" onclick="processPayment()" id="pay-btn" disabled>✓ Process Payment</button>
+      <button class="btn btn-secondary btn-full" style="margin-top:7px;" onclick="clearCart()">Clear Cart</button>
+    </div>
+    <div id="cart-empty" style="text-align:center;padding:36px;color:var(--text3);">
+      <div style="font-size:2.8rem;margin-bottom:7px;">🛒</div><p>Cart is empty</p><p style="font-size:.78rem;margin-top:3px;">Tap a product to add it</p>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="success-modal">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:6px;">🎉</div>
+    <h2 class="modal-title" style="text-align:center;font-size:1.5rem;margin-bottom:10px;">Payment Received!</h2>
+    <div id="receipt-display" class="receipt" style="text-align:left;max-height:260px;overflow-y:auto;margin:14px 0;font-size:.76rem;"></div>
+    <div class="change-box" id="change-box">
+      <div class="change-label">Change</div>
+      <div class="change-amount" id="final-change">—</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-secondary btn-full" onclick="closeModal('success-modal')">Done</button>
+      <button class="btn btn-primary btn-full" onclick="window.print()">🖨️ Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- Draggable Scanner Float Button (Dashboard only) -->
+<div id="scanner-float" style="display:none;">
+  <button id="scan-fab-new" onclick="openDashScan()" title="Drag to move • Tap to scan">📷</button>
+</div>
+
+<!-- DASH SCAN MODAL -->
+<div class="modal-overlay" id="dash-scan-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><span class="modal-title">📷 Barcode Scanner</span><button class="modal-close" onclick="closeDashScan()">✕</button></div>
+    <div style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:14px;position:relative;">
+      <video id="dash-scan-video" style="width:100%;display:block;" autoplay playsinline></video>
+      <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+        <div style="width:240px;height:90px;border:3px solid var(--accent);border-radius:6px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);"></div>
+      </div>
+    </div>
+    <div id="dash-scan-status" style="text-align:center;font-size:.85rem;color:var(--text3);margin-bottom:10px;">Point at barcode — scans one item at a time</div>
+    <div style="display:flex;gap:7px;margin-bottom:10px;">
+      <input type="text" class="form-input" id="dash-manual-bc" placeholder="Or type barcode…" style="flex:1;" onkeydown="if(event.key==='Enter')dashManualLookup()"/>
+      <button type="button" class="btn btn-primary btn-sm" onclick="dashManualLookup()">Add</button>
+    </div>
+    <button type="button" class="btn btn-success btn-full" onclick="closeDashScan();openModal('cart-modal');" style="font-size:.93rem;">
+      🛒 Pay Now — <span id="scan-cart-count">0</span> item(s) in cart
+    </button>
+  </div>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     PRODUCTS PAGE
+══════════════════════════════════════════ -->
+{% if page == 'products' %}
+<main class="page">
+<div class="container">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div><h1 class="page-title">Product <span>Inventory</span></h1><p class="page-sub" id="prod-count">Loading…</p></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;">
+      <button class="btn btn-secondary btn-sm" onclick="openCatModal()">🏷️ Categories</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="exportProducts()" title="Download products CSV">⬇️ Export CSV</button>
+      <button class="btn btn-primary" onclick="openAddModal()">+ Add Product</button>
+    </div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+    <div class="search-wrap" style="flex:1;min-width:180px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="form-input search-input" id="prod-search" placeholder="Search…" oninput="renderProds()"/>
+    </div>
+    <select class="form-select" id="cat-filter" onchange="renderProds()" style="width:auto;min-width:130px;"><option value="">All Categories</option></select>
+    <select class="form-select" id="sort-sel" onchange="renderProds()" style="width:auto;min-width:120px;">
+      <option value="name">Name</option><option value="price">Price</option><option value="qty">Stock</option><option value="sold">Best Selling</option>
+    </select>
+  </div>
+  <div class="cat-scroll" id="prod-cat-pills" style="margin-bottom:16px;"></div>
+  <div class="grid-4 fade-in" id="prod-grid"></div>
+</div>
+
+<!-- ADD/EDIT PRODUCT MODAL -->
+<div class="modal-overlay" id="prod-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <span class="modal-title" id="prod-modal-title">Add Product</span>
+      <button class="modal-close" onclick="closeModal('prod-modal')">✕</button>
+    </div>
+    <input type="hidden" id="edit-id"/>
+
+    <!-- IMAGE: two separate inputs — camera + gallery, no conflicting wrapper onclick -->
+    <div class="form-group">
+      <label class="form-label">Product Image</label>
+      <input type="file" id="img-input-gallery" accept="image/*" style="display:none" onchange="previewImg(event)"/>
+      <input type="file" id="img-input-camera"  accept="image/*" capture="environment" style="display:none" onchange="previewImg(event)"/>
+      <div style="border:2px dashed var(--border);border-radius:var(--r-sm);padding:16px;background:var(--bg);text-align:center;">
+        <img id="img-preview" style="max-height:140px;object-fit:contain;border-radius:8px;display:none;margin:0 auto 10px;width:100%;"/>
+        <div id="img-placeholder" style="margin-bottom:10px;">
+          <div style="font-size:2.2rem;margin-bottom:4px;">🖼️</div>
+          <div style="font-size:.8rem;color:var(--text3);">No image selected</div>
+        </div>
+        <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('img-input-camera').click()">📷 Camera</button>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="document.getElementById('img-input-gallery').click()">🖼️ Gallery</button>
+          <button type="button" class="btn btn-secondary btn-sm" id="img-remove-btn" onclick="removeImg()" style="display:none;color:var(--danger);">✕ Remove</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group"><label class="form-label">Product Name *</label><input type="text" class="form-input" id="p-name" placeholder="e.g. Chicken Adobo"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Price (₱) *</label><input type="number" class="form-input" id="p-price" placeholder="0.00" min="0" step="0.5"/></div>
+      <div class="form-group"><label class="form-label">Quantity *</label><input type="number" class="form-input" id="p-qty" placeholder="0" min="0"/></div>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Category</label>
+      <select class="form-select" id="p-cat"><option value="">-- Select Category --</option></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Expiry Date</label><input type="date" class="form-input" id="p-expiry"/></div>
+      <div class="form-group">
+        <label class="form-label">Barcode / SKU</label>
+        <div style="display:flex;gap:6px;">
+          <input type="text" class="form-input" id="p-barcode" placeholder="Auto-generated"/>
+          <button type="button" class="btn btn-secondary btn-sm" onclick="genBarcode()" title="Generate new barcode">↺</button>
+        </div>
+      </div>
+    </div>
+    <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="p-desc" placeholder="Optional description…" style="min-height:55px;"></textarea></div>
+    <!-- Barcode Preview -->
+    <div id="qr-preview-wrap" style="display:none;background:var(--surface2);border-radius:var(--r-sm);padding:14px;text-align:center;margin-bottom:14px;">
+      <div style="font-size:.72rem;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:.05em;">Product Barcode (CODE128)</div>
+      <svg id="barcode-svg" style="max-width:260px;height:80px;display:block;margin:0 auto;background:#fff;border-radius:6px;padding:6px;"></svg>
+      <div style="margin-top:8px;display:flex;gap:6px;justify-content:center;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="downloadBarcode()">⬇️ Download</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="printBarcode()">🖨️ Print</button>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-primary" style="flex:2;" onclick="saveProduct()" id="save-prod-btn">Save Product</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="show-qr-btn" onclick="showQRPreview()" style="display:none;">🏷️ Barcode</button>
+      <button type="button" class="btn btn-danger btn-sm" id="delete-prod-btn" onclick="deleteProduct()" style="display:none;">🗑️</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="closeModal('prod-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- CATEGORY MODAL -->
+<div class="modal-overlay" id="cat-modal">
+  <div class="modal" style="max-width:380px;">
+    <div class="modal-header"><span class="modal-title">🏷️ Categories</span><button class="modal-close" onclick="closeModal('cat-modal')">✕</button></div>
+    <div id="cat-list" style="margin-bottom:14px;"></div>
+    <div style="display:flex;gap:7px;">
+      <input type="text" class="form-input" id="new-cat-input" placeholder="New category name…" style="flex:1;" onkeydown="if(event.key==='Enter')addCat()"/>
+      <button type="button" class="btn btn-primary" onclick="addCat()">Add</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     WAREHOUSE PAGE
+══════════════════════════════════════════ -->
+{% if page == 'warehouse' %}
+<main class="page">
+<div class="container">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div><h1 class="page-title">Warehouse <span>Inventory</span></h1><p class="page-sub">Stock movements & expiry tracking</p></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;">
+      <button type="button" class="btn btn-secondary btn-sm" onclick="openScanModal()">📷 Scan Barcode</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="exportInventory()" title="Download inventory CSV">⬇️ Inventory CSV</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="exportWarehouseLog()" title="Download movement log CSV">⬇️ Log CSV</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="openPrintAllModal()">🖨️ Print All Barcodes</button>
+      <button type="button" class="btn btn-primary btn-sm" onclick="openMoveModal()">+ Stock Movement</button>
+    </div>
+  </div>
+
+  <!-- Expiry Alerts -->
+  <div id="expiry-alerts" style="margin-bottom:18px;"></div>
+
+  <!-- Stats row -->
+  <div class="grid-4 wh-stats-grid" style="margin-bottom:20px;">
+    <div class="stat-card orange"><div class="stat-label">Total Products</div><div class="stat-value" id="wh-total">—</div><div class="stat-sub">in system</div></div>
+    <div class="stat-card red"><div class="stat-label">Low Stock</div><div class="stat-value" id="wh-low">—</div><div class="stat-sub">≤5 units</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Stock Value</div><div class="stat-value" id="wh-value" style="font-size:1.3rem;">—</div><div class="stat-sub">at cost price</div></div>
+    <div class="stat-card blue"><div class="stat-label">Expiring Soon</div><div class="stat-value" id="wh-expiring">—</div><div class="stat-sub">within 7 days</div></div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div style="display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;align-items:center;">
+    <div class="cat-scroll" id="wh-filter-pills" style="flex:1;margin-bottom:0;">
+      <button class="cat-pill active" onclick="setWhFilter('all',this)">All Products</button>
+      <button class="cat-pill" onclick="setWhFilter('low',this)">⚠️ Low Stock</button>
+      <button class="cat-pill" onclick="setWhFilter('out',this)">🚫 Out of Stock</button>
+      <button class="cat-pill" onclick="setWhFilter('expiring',this)">⏰ Expiring</button>
+      <button class="cat-pill" onclick="setWhFilter('expired',this)">❌ Expired</button>
+    </div>
+    <div class="search-wrap" style="min-width:160px;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="form-input search-input" id="wh-search" placeholder="Search…" oninput="renderWhProducts()"/>
+    </div>
+  </div>
+
+  <!-- Products table -->
+  <div class="card" style="padding:0;overflow:hidden;margin-bottom:20px;">
+    <div class="table-wrap wh-table">
+      <table>
+        <thead><tr><th>Product</th><th>Barcode</th><th>Stock</th><th>Wh-In</th><th>Wh-Out</th><th>Expiry</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="wh-body"></tbody>
+      </table>
+      <div id="wh-empty" class="empty-state" style="display:none;"><div class="empty-icon">🏭</div><div class="empty-text">No products found</div></div>
+    </div>
+  </div>
+
+  <!-- Movement Log -->
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <div style="font-family:'Instrument Serif',serif;font-size:1.1rem;font-style:italic;color:var(--text2);">📋 Recent Stock Movements</div>
+    <button type="button" class="btn btn-secondary btn-sm" onclick="loadWhLog()">↺ Refresh</button>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Product</th><th>Type</th><th>Qty</th><th>Note</th><th>By</th><th>Date</th></tr></thead>
+        <tbody id="wh-log-body"></tbody>
+      </table>
+      <div id="wh-log-empty" class="empty-state" style="display:none;"><div class="empty-icon">📋</div><div class="empty-text">No movements yet</div></div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- PRINT ALL BARCODES MODAL -->
+<div class="modal-overlay" id="print-all-modal">
+  <div class="modal" style="max-width:540px;max-height:88vh;overflow-y:auto;">
+    <div class="modal-header"><span class="modal-title">🖨️ Print All Barcodes</span><button class="modal-close" onclick="closeModal('print-all-modal')">✕</button></div>
+    <p style="font-size:.82rem;color:var(--text2);margin-bottom:14px;">Set how many labels to print per product. Barcodes print <strong>5 per row</strong>.</p>
+    <div id="print-all-list" style="margin-bottom:14px;max-height:380px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-sm);padding:8px 12px;"></div>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn btn-primary btn-full" onclick="doPrintAll()">🖨️ Print All Now</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('print-all-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- BARCODE SCANNER MODAL (Warehouse) -->
+<div class="modal-overlay" id="scan-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><span class="modal-title">📷 Scan Barcode</span><button class="modal-close" onclick="closeScanModal()">✕</button></div>
+    <div style="background:#000;border-radius:12px;overflow:hidden;margin-bottom:14px;position:relative;">
+      <video id="scan-video" style="width:100%;display:block;" autoplay playsinline></video>
+      <canvas id="scan-canvas" style="display:none;"></canvas>
+      <div style="position:absolute;inset:0;pointer-events:none;display:flex;align-items:center;justify-content:center;">
+        <div style="width:240px;height:90px;border:3px solid var(--accent);border-radius:6px;box-shadow:0 0 0 9999px rgba(0,0,0,.5);"></div>
+      </div>
+    </div>
+    <div id="scan-status" style="text-align:center;font-size:.85rem;color:var(--text3);margin-bottom:12px;">Point camera at barcode</div>
+    <div id="scan-result" style="display:none;background:var(--surface2);border-radius:var(--r-sm);padding:14px;margin-bottom:12px;"></div>
+    <!-- Manual entry fallback -->
+    <div style="display:flex;gap:7px;">
+      <input type="text" class="form-input" id="manual-barcode-inp" placeholder="Or type barcode manually…" style="flex:1;" onkeydown="if(event.key==='Enter')lookupManualBarcode()"/>
+      <button type="button" class="btn btn-primary btn-sm" onclick="lookupManualBarcode()">Lookup</button>
+    </div>
+  </div>
+</div>
+
+<!-- STOCK MOVEMENT MODAL -->
+<div class="modal-overlay" id="move-modal">
+  <div class="modal" style="max-width:400px;">
+    <div class="modal-header"><span class="modal-title" id="move-modal-title">Stock Movement</span><button class="modal-close" onclick="closeModal('move-modal')">✕</button></div>
+    <div class="form-group">
+      <label class="form-label">Product</label>
+      <select class="form-select" id="move-product"></select>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group">
+        <label class="form-label">Type</label>
+        <select class="form-select" id="move-type">
+          <option value="in">📦 Stock In (Restock)</option>
+          <option value="out">📤 Stock Out (Remove)</option>
+        </select>
+      </div>
+      <div class="form-group"><label class="form-label">Quantity</label><input type="number" class="form-input" id="move-qty" min="1" placeholder="0"/></div>
+    </div>
+    <div class="form-group"><label class="form-label">Note / Reason</label><input type="text" class="form-input" id="move-note" placeholder="e.g. Delivery received, Damaged goods…"/></div>
+    <div style="display:flex;gap:8px;margin-top:6px;">
+      <button type="button" class="btn btn-primary btn-full" onclick="saveMovement()" id="save-move-btn">Save Movement</button>
+      <button type="button" class="btn btn-secondary" onclick="closeModal('move-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     SALES PAGE
+══════════════════════════════════════════ -->
+{% if page == 'sales' %}
+<main class="page">
+<div class="container">
+  <div class="page-header" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;">
+    <div><h1 class="page-title">Sales <span>History</span></h1><p class="page-sub" id="tx-label">Loading…</p></div>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;align-items:center;">
+      <label style="font-size:.78rem;font-weight:600;color:var(--text2);white-space:nowrap;">📅 Filter by Date:</label>
+      <input type="date" class="form-input" id="date-filter" onchange="loadTx()" style="width:auto;"/>
+      <div style="display:flex;gap:6px;margin-left:auto;">
+        <button type="button" class="btn btn-secondary btn-sm" onclick="exportSales()" title="Download sales summary CSV">⬇️ Sales CSV</button>
+        <button type="button" class="btn btn-secondary btn-sm" onclick="exportSalesItems()" title="Download detailed line-items CSV">⬇️ Items CSV</button>
+      </div>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="clearDateFilter()">📋 All</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="exportCSV()">📥 CSV</button>
+      <button type="button" class="btn btn-secondary btn-sm" onclick="exportJSON()">📥 JSON</button>
+      <button type="button" class="btn btn-danger btn-sm" onclick="deleteAllTx()">🗑️ Delete All</button>
+    </div>
+  </div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Order Ref</th><th>Items</th><th>Total</th><th>Cash</th><th>Change</th><th>Cashier</th><th>Date/Time</th><th>Actions</th></tr></thead>
+        <tbody id="tx-body"></tbody>
+      </table>
+      <div id="tx-empty" class="empty-state"><div class="empty-icon">🧾</div><div class="empty-text">No transactions yet</div></div>
+    </div>
+  </div>
+</div>
+</main>
+
+<!-- TX DETAIL MODAL -->
+<div class="modal-overlay" id="tx-modal">
+  <div class="modal" style="max-width:420px;">
+    <div class="modal-header"><span class="modal-title" id="tx-modal-title">Order Details</span><button class="modal-close" onclick="closeModal('tx-modal')">✕</button></div>
+    <div id="tx-modal-body"></div>
+  </div>
+</div>
+
+<!-- DELETE CONFIRM MODAL -->
+<div class="modal-overlay" id="del-all-modal">
+  <div class="modal" style="max-width:380px;text-align:center;">
+    <div style="font-size:3rem;margin-bottom:8px;">⚠️</div>
+    <h2 style="font-family:'Instrument Serif',serif;font-style:italic;font-size:1.4rem;margin-bottom:10px;">Delete All History?</h2>
+    <p style="font-size:.86rem;color:var(--text2);margin-bottom:20px;line-height:1.6;">This will permanently delete <strong>all transaction records</strong> and reset all product sold counts. This <strong>cannot be undone</strong>.</p>
+    <div style="display:flex;gap:8px;">
+      <button type="button" class="btn btn-secondary btn-full" onclick="closeModal('del-all-modal')">Cancel</button>
+      <button type="button" class="btn btn-danger btn-full" onclick="confirmDeleteAll()" id="confirm-del-all-btn">Yes, Delete All</button>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     ANALYTICS PAGE
+══════════════════════════════════════════ -->
+{% if page == 'analytics' %}
+<main class="page">
+<div class="container">
+  <div class="page-header"><h1 class="page-title">Analytics &amp; <span>Insights</span></h1><p class="page-sub">Data-driven decisions for your canteen</p></div>
+  <div class="grid-4" style="margin-bottom:20px;">
+    <div class="stat-card orange"><div class="stat-label">Total Revenue</div><div class="stat-value" id="a-rev">—</div><div class="stat-sub">all time</div></div>
+    <div class="stat-card green"><div class="stat-label">Total Orders</div><div class="stat-value" id="a-orders">—</div><div class="stat-sub">all time</div></div>
+    <div class="stat-card blue"><div class="stat-label">Avg Order</div><div class="stat-value" id="a-avg">—</div><div class="stat-sub">per transaction</div></div>
+    <div class="stat-card red"><div class="stat-label">Best Seller</div><div class="stat-value" id="a-best" style="font-size:1rem;">—</div><div class="stat-sub">most sold item</div></div>
+  </div>
+  <div class="insight-card"><h3>🤖 AI-Powered Insight</h3><p id="ai-insight">Analyzing your sales data…</p></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" class="dash-layout">
+    <div>
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-title">📈 7-Day Sales</div>
+        <div class="bar-chart" id="daily-chart"><div style="color:var(--text3);font-size:.83rem;text-align:center;padding:20px;">Loading…</div></div>
+      </div>
+      <div class="card">
+        <div class="card-title">🏷️ Sales by Category</div>
+        <div class="bar-chart" id="cat-chart"><div style="color:var(--text3);font-size:.83rem;text-align:center;padding:20px;">Loading…</div></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-title">🏆 Top Products</div>
+        <div id="top-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</main>
+{% endif %}
+
+<!-- ══════════════════════════════════════════
+     SETTINGS PAGE
+══════════════════════════════════════════ -->
+{% if page == 'settings' %}
+<main class="page">
+<div class="container" style="max-width:680px;">
+  <div class="page-header"><h1 class="page-title">POS <span>Settings</span></h1><p class="page-sub">Configure your store</p></div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">🏪 Shop Information</div>
+    <div class="form-group"><label class="form-label">Shop Name</label><input type="text" class="form-input" id="shop-name-inp" placeholder="POS System"/></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+      <div class="form-group"><label class="form-label">Currency Symbol</label><input type="text" class="form-input" id="currency-inp" placeholder="₱" maxlength="5"/></div>
+      <div class="form-group"><label class="form-label">Tax Rate (%)</label><input type="number" class="form-input" id="tax-inp" placeholder="0" min="0" max="100"/></div>
+    </div>
+    <button class="btn btn-primary" onclick="saveSettings()">Save Settings</button>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">🔑 Change Password</div>
+    <div class="form-group"><label class="form-label">Current Password</label><input type="password" class="form-input" id="old-pw"/></div>
+    <div class="form-group"><label class="form-label">New Password</label><input type="password" class="form-input" id="new-pw" placeholder="Min 6 characters"/></div>
+    <button class="btn btn-primary" onclick="changePW()">Update Password</button>
+  </div>
+
+  {% if user.role == 'owner' %}
+  <div class="card">
+    <div class="card-title">👥 User Accounts</div>
+    <div id="users-list" style="margin-bottom:14px;"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <input type="text" class="form-input" id="new-uname" placeholder="Username"/>
+      <input type="password" class="form-input" id="new-upass" placeholder="Password"/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;">
+      <input type="text" class="form-input" id="new-uname-full" placeholder="Full Name"/>
+      <select class="form-select" id="new-urole"><option value="staff">Staff</option><option value="owner">Owner</option></select>
+    </div>
+    <button class="btn btn-primary btn-sm" onclick="addUser()">+ Add User</button>
+  </div>
+  {% endif %}
+</div>
+</main>
+{% endif %}
+
+<!-- ── TOAST ── -->
+<div id="toast-wrap"></div>
+
+<!-- ── TOAST ── -->
+<div id="toast-wrap"></div>
+
+
+
+<!-- Toast container -->
+<div id="toast-wrap" style="position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:8px;pointer-events:none;"></div>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
